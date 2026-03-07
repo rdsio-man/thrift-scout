@@ -7,6 +7,9 @@
     "userInterfaceStyle": "light",
     "assetBundlePatterns": ["**/*"],
     "newArchEnabled": false,
+    "experiments": {
+      "newArchEnabled": false
+    },
     "android": {
       "package": "com.thriftscout.app",
       "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
