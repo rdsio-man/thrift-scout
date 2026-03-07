@@ -8,6 +8,7 @@ import {
   Linking,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,7 +26,7 @@ export default function SuccessScreen({ route, navigation }) {
   // Deep link into the Airtable app (mobile) or web (fallback)
   const handleViewInAirtable = async () => {
     const baseId = 'app6m3AeF51whZ1Ah';
-    const tableId = 'tblTaFS0YtOCBM8Rz';
+    const tableId = 'tbl5Z8YEYzZoj9p5p';
 
     // Try the Airtable mobile app deep link first
     const appUrl = `airtable://app.airtable.com/${baseId}/${tableId}/${airtableRecordId}`;
