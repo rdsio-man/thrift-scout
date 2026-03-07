@@ -6,6 +6,7 @@ const cors = require('cors');
 const searchRoutes = require('./routes/search');
 const itemsRoutes = require('./routes/items');
 const virtualModelRoutes = require('./routes/virtualModel');
+const ebayNotificationsRoutes = require('./routes/ebayNotifications');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 app.use('/api/search', searchRoutes);
 app.use('/api/items', itemsRoutes);
 app.use('/api/virtual-model', virtualModelRoutes);
+app.use('/api/ebay/notifications', ebayNotificationsRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
