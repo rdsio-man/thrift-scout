@@ -7,17 +7,19 @@
     "userInterfaceStyle": "light",
     "assetBundlePatterns": ["**/*"],
     "newArchEnabled": false,
+    "android": {
+      "package": "com.thriftscout.app",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "newArchEnabled": false
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.thriftscout.app",
+      "newArchEnabled": false,
       "infoPlist": {
         "NSCameraUsageDescription": "Thrift Scout needs camera access to scan items.",
         "NSPhotoLibraryUsageDescription": "Thrift Scout needs photo library access to pick item photos."
       }
-    },
-    "android": {
-      "package": "com.thriftscout.app",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "platforms": ["ios", "android"]
   }
