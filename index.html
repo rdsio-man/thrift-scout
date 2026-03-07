@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thrift Scout — UI Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+    min-height: 100vh;
+  }
+
+  .screen-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .screen-label {
+    color: #e8c547;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 320px;
+    background: #111;
+    border-radius: 48px;
+    padding: 14px;
+    box-shadow:
+      0 0 0 2px #333,
+      0 30px 80px rgba(0,0,0,0.8),
+      inset 0 0 0 1px #444;
+    position: relative;
+  }
+
+  .phone-notch {
+    width: 120px;
+    height: 28px;
+    background: #111;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto 8px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .phone-notch::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #222;
+    border-radius: 50%;
+    position: absolute;
+    right: 28px;
+    top: 8px;
+    border: 1px solid #333;
+  }
+
+  .phone-screen {
+    background: #f5f5f5;
+    border-radius: 36px;
+    overflow: hidden;
+    min-height: 620px;
+  }
+
+  /* Status bar */
+  .status-bar {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  /* Nav header */
+  .nav-header {
+    background: #1a1a2e;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .nav-title {
+    color: #e8c547;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
+  .nav-logo {
+    font-size: 20px;
+  }
+
+  /* Screen content */
+  .screen-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f5f5f5;
+  }
+
+  .tagline {
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  /* Photo area */
+  .photo-area {
+    background: #dce3ec;
+    border-radius: 14px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    border: 2px dashed #aab8c5;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .photo-area.has-photo {
+    border: none;
+    background: #c8d8e8;
+  }
+
+  .photo-area .camera-emoji { font-size: 36px; }
+  .photo-area .photo-text { color: #667; font-size: 14px; font-weight: 500; }
+
+  /* Clothing item overlay in photo */
+  .photo-item {
+    font-size: 60px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  }
+
+  .photo-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 6px;
+  }
+
+  .gallery-btn {
+    background: #fff;
+    border: 1.5px solid #1a1a2e;
+    border-radius: 10px;
+    padding: 9px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+    cursor: pointer;
+  }
+
+  /* Input fields */
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .input-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .input-optional {
+    font-weight: 400;
+    color: #999;
+    font-size: 11px;
+  }
+
+  .input-field {
+    background: #fff;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #1a1a2e;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .input-field.filled {
+    border-color: #1a1a2e;
+    color: #1a1a2e;
+    font-weight: 500;
+  }
+
+  .input-hint {
+    font-size: 10px;
+    color: #999;
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+  /* Search button */
+  .search-btn {
+    background: #e8c547;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1a1a2e;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(232,197,71,0.4);
+    margin-top: 4px;
+  }
+
+  /* ─── RESULTS SCREEN ─────────────────────────────── */
+  .results-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f5;
+  }
+
+  .results-photo {
+    height: 140px;
+    background: linear-gradient(135deg, #c8d8e8, #a8b8c8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    position: relative;
+  }
+
+  .results-photo-label {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .price-card {
+    margin: 12px 14px 0;
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .price-label { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .price-value { font-size: 42px; font-weight: 900; color: #22a86e; line-height: 1.1; }
+  .price-value.red { color: #e53e3e; }
+  .price-sub { font-size: 12px; color: #999; margin-top: 2px; }
+
+  .buy-banner {
+    margin: 10px 14px 0;
+    background: #22a86e;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .buy-banner.pass { background: #e53e3e; }
+  .buy-banner-icon { font-size: 20px; }
+  .buy-banner-text { color: #fff; font-weight: 800; font-size: 14px; flex: 1; }
+
+  .listings-header {
+    padding: 12px 14px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .listing-item {
+    margin: 0 14px 6px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .listing-title { font-size: 12px; color: #333; font-weight: 500; max-width: 180px; }
+  .listing-meta { font-size: 10px; color: #999; margin-top: 2px; }
+  .listing-price { font-size: 15px; font-weight: 800; color: #22a86e; }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px 14px;
+    margin-top: 4px;
+  }
+
+  .pass-btn {
+    flex: 1;
+    background: #fff;
+    border: 2px solid #e53e3e;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #e53e3e;
+  }
+
+  .buy-btn {
+    flex: 2;
+    background: #22a86e;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(34,168,110,0.4);
+  }
+
+  /* ─── CONFIRM SCREEN ─────────────────────────── */
+  .confirm-content {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f5f5f5;
+  }
+
+  .confirm-photo {
+    height: 100px;
+    background: linear-gradient(135deg, #c8d8e8, #a8b8c8);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+  }
+
+  .confirm-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1a1a2e;
+    text-align: center;
+  }
+
+  .confirm-subtitle {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-top: -6px;
+  }
+
+  .select-field {
+    background: #fff;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #1a1a2e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .select-arrow { color: #999; font-size: 12px; }
+
+  .save-btn {
+    background: #1a1a2e;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #e8c547;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .phone-home-bar {
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    width: 100px;
+    margin: 10px auto 4px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ─── SCREEN 1: CAMERA / SCAN ──────────────────────── -->
+<div class="screen-wrapper">
+  <div class="screen-label">Screen 1 — Scan Item</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●●●</span>
+        <span>⬛ 100%</span>
+      </div>
+      <div class="nav-header">
+        <span class="nav-logo">🏷️</span>
+        <span class="nav-title">THRIFT SCOUT</span>
+      </div>
+      <div class="screen-content">
+        <div class="tagline">Scan before you spend 💸</div>
+
+        <div class="photo-area">
+          <span class="camera-emoji">📷</span>
+          <span class="photo-text">Tap to take photo</span>
+        </div>
+
+        <div class="gallery-btn">🖼️ Choose from Gallery</div>
+
+        <div class="input-group">
+          <div class="input-label">Brand / Item Name <span style="color:#e53e3e">*</span></div>
+          <div class="input-field" style="color:#aaa;">e.g. Levi's 501 jeans, Coach bag...</div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">Serial / Model Number <span class="input-optional">(optional)</span></div>
+          <div class="input-field" style="color:#aaa;">e.g. 00501-0193, Style #BG123...</div>
+          <div class="input-hint">Helps find exact matches on eBay & Poshmark</div>
+        </div>
+
+        <div class="search-btn">🔍 Check Sold Prices</div>
+      </div>
+    </div>
+    <div class="phone-home-bar"></div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 1B: CAMERA (FILLED) ──────────────────── -->
+<div class="screen-wrapper">
+  <div class="screen-label">Screen 1 — Filled In</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●●●</span>
+        <span>⬛ 100%</span>
+      </div>
+      <div class="nav-header">
+        <span class="nav-logo">🏷️</span>
+        <span class="nav-title">THRIFT SCOUT</span>
+      </div>
+      <div class="screen-content">
+        <div class="tagline">Scan before you spend 💸</div>
+
+        <div class="photo-area has-photo">
+          <span class="photo-item">👗</span>
+          <span class="photo-tag">📷 Retake</span>
+        </div>
+
+        <div class="gallery-btn">🖼️ Choose from Gallery</div>
+
+        <div class="input-group">
+          <div class="input-label">Brand / Item Name <span style="color:#e53e3e">*</span></div>
+          <div class="input-field filled">Levi's 501 jeans women</div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">Serial / Model Number <span class="input-optional">(optional)</span></div>
+          <div class="input-field filled">00501-0193</div>
+          <div class="input-hint">Helps find exact matches on eBay & Poshmark</div>
+        </div>
+
+        <div class="search-btn">🔍 Check Sold Prices</div>
+      </div>
+    </div>
+    <div class="phone-home-bar"></div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 2: RESULTS ────────────────────────────── -->
+<div class="screen-wrapper">
+  <div class="screen-label">Screen 2 — Results (Buy)</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●●●</span>
+        <span>⬛ 100%</span>
+      </div>
+      <div class="nav-header">
+        <span class="nav-logo">📊</span>
+        <span class="nav-title">SOLD PRICES</span>
+      </div>
+      <div class="results-content">
+        <div class="results-photo">
+          <span>👗</span>
+          <span class="results-photo-label">Levi's 501 · #00501-0193</span>
+        </div>
+
+        <div class="price-card">
+          <div class="price-label">Avg Sold Price</div>
+          <div class="price-value">$47</div>
+          <div class="price-sub">Based on 24 recent sales · eBay + Poshmark</div>
+        </div>
+
+        <div class="buy-banner">
+          <span class="buy-banner-icon">✅</span>
+          <span class="buy-banner-text">BUY IT — Avg sells for $47</span>
+        </div>
+
+        <div class="listings-header">Recent Sold Listings</div>
+
+        <div class="listing-item">
+          <div>
+            <div class="listing-title">Levi's 501 Original Women's 28x30</div>
+            <div class="listing-meta">eBay · Nov 28</div>
+          </div>
+          <div class="listing-price">$52</div>
+        </div>
+
+        <div class="listing-item">
+          <div>
+            <div class="listing-title">Levi 501 jeans vintage high waist</div>
+            <div class="listing-meta">Poshmark · Nov 25</div>
+          </div>
+          <div class="listing-price">$45</div>
+        </div>
+
+        <div class="listing-item">
+          <div>
+            <div class="listing-title">Levi's 501 Straight Women 27x32</div>
+            <div class="listing-meta">eBay · Nov 22</div>
+          </div>
+          <div class="listing-price">$38</div>
+        </div>
+
+        <div class="action-row">
+          <div class="pass-btn">✕ Pass</div>
+          <div class="buy-btn">🛍️ I Bought It!</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-home-bar"></div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 3: CONFIRM PURCHASE ──────────────────── -->
+<div class="screen-wrapper">
+  <div class="screen-label">Screen 3 — Confirm Purchase</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●●●</span>
+        <span>⬛ 100%</span>
+      </div>
+      <div class="nav-header">
+        <span class="nav-logo">📝</span>
+        <span class="nav-title">LOG ITEM</span>
+      </div>
+      <div class="confirm-content">
+        <div class="confirm-photo">👗</div>
+        <div class="confirm-title">Nice find! 🎉</div>
+        <div class="confirm-subtitle">Fill in the details to save to inventory</div>
+
+        <div class="input-group">
+          <div class="input-label">Brand</div>
+          <div class="input-field filled">Levi's</div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">Product Type</div>
+          <div class="select-field">
+            <span>Jeans / Bottoms</span>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">Description</div>
+          <div class="input-field" style="color:#aaa; font-size:13px;">e.g. Size 28, light wash, good condition...</div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <div class="input-group" style="flex:1;">
+            <div class="input-label">Price Paid</div>
+            <div class="input-field filled">$8.99</div>
+          </div>
+          <div class="input-group" style="flex:1;">
+            <div class="input-label">Store</div>
+            <div class="input-field filled">Goodwill</div>
+          </div>
+        </div>
+
+        <div class="save-btn">💾 Save to Inventory</div>
+      </div>
+    </div>
+    <div class="phone-home-bar"></div>
+  </div>
+</div>
+
+</body>
+</html>
