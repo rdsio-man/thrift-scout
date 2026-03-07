@@ -1,6 +1,9 @@
 const express = require('express');
 const axios = require('axios');
 
+const { scrapePoshmarkSoldListings } = require('../services/poshmarkScraper');
+const { getCached, setCached } = require('../services/searchCache');
+
 const router = express.Router();
 
 const EBAY_FINDING_API_URL =
@@ -13,6 +16,13 @@ router.post('/ebay', async (req, res) => {
 
   if (!query || query.trim() === '') {
     return res.status(400).json({ error: 'query is required' });
+  }
+
+  // Check in-memory cache first
+  const cacheKey = `ebay:${query.trim().toLowerCase()}:${category || ''}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.json({ results: cached, fromCache: true });
   }
 
   const appId = process.env.EBAY_APP_ID;
@@ -77,6 +87,9 @@ router.post('/ebay', async (req, res) => {
       dateSold: item.listingInfo?.[0]?.endTime?.[0] || null,
     }));
 
+    // Store in cache
+    setCached(cacheKey, results);
+
     return res.json({ results });
   } catch (err) {
     console.error('[eBay Search Error]', err.message);
@@ -88,26 +101,36 @@ router.post('/ebay', async (req, res) => {
 });
 
 // ─── POST /api/search/poshmark ────────────────────────────────────────────────
-// Placeholder — full Poshmark scraper coming soon.
-//
-// TODO: Implement a Playwright-based scraper here.
-//   Steps:
-//   1. Launch headless Chromium via Playwright
-//   2. Navigate to https://poshmark.com/search?query=<query>&availability=sold_out
-//   3. Wait for listing cards to load (.listing-card selector)
-//   4. Extract title, soldPrice, imageUrl, listingUrl, dateSold for each card
-//   5. Handle pagination if needed
-//   6. Return structured results
-//
-//   Note: Poshmark may employ bot detection — consider using stealth plugins
-//   (playwright-extra + puppeteer-extra-plugin-stealth) and residential proxies
-//   if scraping at scale.
+// Playwright-based scraper for Poshmark sold listings.
 router.post('/poshmark', async (req, res) => {
-  // const { query } = req.body;
-  return res.json({
-    message: 'Poshmark scraper coming soon',
-    results: [],
-  });
+  const { query } = req.body;
+
+  if (!query || query.trim() === '') {
+    return res.status(400).json({ error: 'query is required' });
+  }
+
+  // Check in-memory cache first (keyed separately from eBay)
+  const cacheKey = `poshmark:${query.trim().toLowerCase()}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return res.json({ results: cached, fromCache: true });
+  }
+
+  try {
+    const results = await scrapePoshmarkSoldListings(query);
+
+    // Even if results is empty we cache it to avoid repeated failed scrapes
+    setCached(cacheKey, results);
+
+    return res.json({ results });
+  } catch (err) {
+    // scrapePoshmarkSoldListings should never throw, but be safe
+    console.error('[Poshmark Route Error]', err.message);
+    return res.json({
+      results: [],
+      message: 'Poshmark search unavailable',
+    });
+  }
 });
 
 // ─── POST /api/search/combined ────────────────────────────────────────────────
@@ -130,7 +153,7 @@ router.post('/combined', async (req, res) => {
       axios.post(
         `${getBaseUrl(req)}/api/search/poshmark`,
         { query },
-        { timeout: 12000 }
+        { timeout: 45000 } // Playwright scraping needs extra time
       ),
     ]);
 
