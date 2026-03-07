@@ -1,23 +1,28 @@
 const Airtable = require('airtable');
 
 // ─── Initialization ────────────────────────────────────────────────────────────
-const apiKey = process.env.AIRTABLE_API_KEY;
 const baseId = process.env.AIRTABLE_BASE_ID || 'app6m3AeF51whZ1Ah';
-const TABLE_ID = 'tblTaFS0YtOCBM8Rz';
+const TABLE_ID = 'tbl5Z8YEYzZoj9p5p'; // All Inventory
 
-if (!apiKey || apiKey === 'your_key_here') {
-  console.warn(
-    '[Airtable] WARNING: AIRTABLE_API_KEY is not set. Item operations will fail.'
-  );
+// Lazy-initialize Airtable so missing env vars don't crash the server on startup
+let _table = null;
+
+function getTable() {
+  if (_table) return _table;
+
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  if (!apiKey || apiKey === 'your_key_here') {
+    throw new Error('AIRTABLE_API_KEY is not configured. Set it in Railway environment variables.');
+  }
+
+  Airtable.configure({
+    endpointUrl: 'https://api.airtable.com',
+    apiKey,
+  });
+
+  _table = Airtable.base(baseId)(TABLE_ID);
+  return _table;
 }
-
-Airtable.configure({
-  endpointUrl: 'https://api.airtable.com',
-  apiKey: apiKey,
-});
-
-const base = Airtable.base(baseId);
-const table = base(TABLE_ID);
 
 // ─── Helper: promisify Airtable callbacks ──────────────────────────────────────
 
@@ -29,17 +34,14 @@ const table = base(TABLE_ID);
  * @returns {Promise<AirtableRecord>}
  */
 async function createItem(fields) {
+  const table = getTable();
   return new Promise((resolve, reject) => {
     table.create(
       [{ fields }],
-      { typecast: true }, // Allow Airtable to coerce types (e.g., string dates)
+      { typecast: true },
       (err, records) => {
-        if (err) {
-          return reject(new Error(`Airtable createItem failed: ${err.message}`));
-        }
-        if (!records || records.length === 0) {
-          return reject(new Error('Airtable createItem returned no records'));
-        }
+        if (err) return reject(new Error(`Airtable createItem failed: ${err.message}`));
+        if (!records || records.length === 0) return reject(new Error('Airtable createItem returned no records'));
         resolve(records[0]);
       }
     );
@@ -54,17 +56,14 @@ async function createItem(fields) {
  * @returns {Promise<AirtableRecord>}
  */
 async function updateItem(recordId, fields) {
+  const table = getTable();
   return new Promise((resolve, reject) => {
     table.update(
       [{ id: recordId, fields }],
       { typecast: true },
       (err, records) => {
-        if (err) {
-          return reject(new Error(`Airtable updateItem failed: ${err.message}`));
-        }
-        if (!records || records.length === 0) {
-          return reject(new Error('Airtable updateItem returned no records'));
-        }
+        if (err) return reject(new Error(`Airtable updateItem failed: ${err.message}`));
+        if (!records || records.length === 0) return reject(new Error('Airtable updateItem returned no records'));
         resolve(records[0]);
       }
     );
@@ -78,11 +77,10 @@ async function updateItem(recordId, fields) {
  * @returns {Promise<AirtableRecord>}
  */
 async function getItem(recordId) {
+  const table = getTable();
   return new Promise((resolve, reject) => {
     table.find(recordId, (err, record) => {
-      if (err) {
-        return reject(new Error(`Airtable getItem failed: ${err.message}`));
-      }
+      if (err) return reject(new Error(`Airtable getItem failed: ${err.message}`));
       resolve(record);
     });
   });
