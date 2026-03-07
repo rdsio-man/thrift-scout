@@ -2,14 +2,14 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import CameraScreen from './src/screens/CameraScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 import ConfirmPurchaseScreen from './src/screens/ConfirmPurchaseScreen';
 import SuccessScreen from './src/screens/SuccessScreen';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
@@ -21,13 +21,13 @@ export default function App() {
             headerStyle: { backgroundColor: '#1a1a2e' },
             headerTintColor: '#e8c547',
             headerTitleStyle: { fontWeight: 'bold', fontSize: 18 },
-            cardStyle: { backgroundColor: '#f5f5f5' },
+            contentStyle: { backgroundColor: '#f5f5f5' },
           }}
         >
           <Stack.Screen
             name="Camera"
             component={CameraScreen}
-            options={{ title: 'Thrift Scout 🔍', headerLeft: () => null }}
+            options={{ title: 'Thrift Scout 🔍', headerBackVisible: false }}
           />
           <Stack.Screen
             name="Results"
@@ -42,7 +42,7 @@ export default function App() {
           <Stack.Screen
             name="Success"
             component={SuccessScreen}
-            options={{ title: 'Saved! 🎉', headerLeft: () => null }}
+            options={{ title: 'Saved! 🎉', headerBackVisible: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>
