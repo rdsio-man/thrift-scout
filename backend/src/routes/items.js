@@ -27,14 +27,15 @@ router.post('/', async (req, res) => {
     // Map to Airtable field IDs
     const fields = {};
 
-    if (brand) fields['fldwMcYqO7BvT82rL'] = brand;
-    if (productType) fields['fldgu14FP3WnZCtlB'] = productType;
-    if (description) fields['fldD3tVoVSh9g4NCU'] = description;
+    // Field IDs from All Inventory table (tbl5Z8YEYzZoj9p5p)
+    if (brand) fields['fldIBF44OdMhBvjFB'] = brand;
+    if (productType) fields['fldsjuajP979HZKzr'] = productType;
+    if (description) fields['fldPSW12VYsVYr4QK'] = description;
     if (purchasePrice !== undefined && purchasePrice !== null) {
-      fields['fldnFIQ5ZE6Tnjrwj'] = parseFloat(purchasePrice);
+      fields['fldzubWJZKhF5GIK9'] = parseFloat(purchasePrice);
     }
-    if (purchaseDate) fields['fldDkJZiDObbedxth'] = purchaseDate;
-    if (purchasedAt) fields['fldBggVnL0D7KtxuM'] = purchasedAt;
+    if (purchaseDate) fields['fldP9c5WDUmXWAOH7'] = purchaseDate;
+    if (purchasedAt) fields['fldN5J11L6OTsQOIC'] = purchasedAt;
 
     // Primary image stored as an Airtable attachment array
     if (imageUrl) {
