@@ -144,13 +144,26 @@ async function scrapePoshmarkSoldListings(query) {
           '';
 
         // ── Price ──────────────────────────────────────────────────────────
-        const priceEl =
-          card.querySelector('[class*="price"]') ||
-          card.querySelector('[data-et-prop-price]');
+        // Try multiple strategies to extract price
+        let soldPrice = 0;
 
-        const rawPrice = priceEl?.textContent?.trim() || '0';
-        // Strip everything except digits and decimal point
-        const soldPrice = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
+        // Strategy 1: look for any element with $ in text content
+        const allEls = Array.from(card.querySelectorAll('*'));
+        for (const el of allEls) {
+          if (el.children.length === 0 && el.textContent.includes('$')) {
+            const match = el.textContent.match(/\$\s*([\d,]+\.?\d*)/);
+            if (match) {
+              soldPrice = parseFloat(match[1].replace(/,/g, ''));
+              break;
+            }
+          }
+        }
+
+        // Strategy 2: data attributes
+        if (!soldPrice) {
+          const rawPrice = card.getAttribute('data-price') || card.getAttribute('data-listing-price') || '0';
+          soldPrice = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0;
+        }
 
         // ── Image ──────────────────────────────────────────────────────────
         const imgEl =
