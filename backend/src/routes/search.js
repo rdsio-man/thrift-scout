@@ -69,6 +69,16 @@ router.post('/ebay', async (req, res) => {
       const errorMsg =
         searchResult?.errorMessage?.[0]?.error?.[0]?.message?.[0] ||
         'eBay API returned an unexpected response';
+
+      // Surface rate limit as a specific error code the client can handle
+      const errorId = searchResult?.errorMessage?.[0]?.error?.[0]?.errorId?.[0];
+      if (errorId === '10001') {
+        return res.status(429).json({
+          error: 'eBay rate limit reached. Please wait a few minutes and try again.',
+          code: 'EBAY_RATE_LIMITED',
+        });
+      }
+
       return res.status(502).json({ error: errorMsg });
     }
 

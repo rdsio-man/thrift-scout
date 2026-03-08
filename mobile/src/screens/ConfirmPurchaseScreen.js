@@ -72,9 +72,10 @@ export default function ConfirmPurchaseScreen({ route, navigation }) {
         purchasePrice,
       });
     } catch (err) {
+      console.error('[Save Error]', err.message);
       Alert.alert(
         'Save Failed',
-        err.message || 'Could not save item to inventory. Please try again.'
+        `Error: ${err.message || 'Could not save item to inventory. Please try again.'}`
       );
     } finally {
       setSaving(false);

@@ -91,7 +91,7 @@ export default function ResultsScreen({ route, navigation }) {
         >
           <Text style={styles.recommendationText}>
             {averageSoldPrice === 0
-              ? '🤷 Not enough data to decide'
+              ? '⏳ eBay rate limit hit — try again in 10 min'
               : buyRecommendation
               ? `✅ BUY IT — Avg sells for ${formattedPrice}`
               : `❌ PASS — Avg only ${formattedPrice}`}
