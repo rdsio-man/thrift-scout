@@ -18,7 +18,15 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // ─── Health Check ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', service: 'thrift-scout-backend' });
+  res.json({
+    status: 'ok',
+    service: 'thrift-scout-backend',
+    version: '1.0.0',
+    env: process.env.NODE_ENV || 'development',
+    ebay: !!process.env.EBAY_APP_ID,
+    airtable: !!process.env.AIRTABLE_API_KEY,
+    fal: !!process.env.FAL_API_KEY,
+  });
 });
 
 // ─── Routes ────────────────────────────────────────────────────────────────────

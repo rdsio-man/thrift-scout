@@ -1,0 +1,5 @@
+# Files to exclude from Railway deployment builds
+node_modules/
+.env
+*.log
+.DS_Store

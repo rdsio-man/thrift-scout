@@ -8,6 +8,34 @@
  */
 
 const { chromium } = require('playwright');
+const fs = require('fs');
+
+// On Railway (Nixpacks), use the system Chromium to avoid downloading a
+// separate browser binary.  On local dev, fall back to Playwright's bundled
+// Chromium (installed separately via `npx playwright install chromium`).
+const SYSTEM_CHROMIUM_PATHS = [
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/nix/store', // will match via glob below — handled at launch time
+];
+
+function getChromiumExecutable() {
+  // Check common system paths first
+  for (const p of ['/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+    if (fs.existsSync(p)) return p;
+  }
+  // Nix store — find any chromium binary dynamically
+  try {
+    const { execSync } = require('child_process');
+    const result = execSync('which chromium 2>/dev/null || which chromium-browser 2>/dev/null', {
+      encoding: 'utf8',
+      timeout: 3000,
+    }).trim();
+    if (result) return result;
+  } catch (_) {}
+  // Fall back to Playwright's own bundled browser (local dev)
+  return undefined;
+}
 
 // Realistic desktop User-Agent (Chrome 122 / Windows 10)
 const USER_AGENT =
@@ -74,6 +102,7 @@ async function scrapePoshmarkSoldListings(query) {
   try {
     browser = await chromium.launch({
       headless: true,
+      executablePath: getChromiumExecutable(),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

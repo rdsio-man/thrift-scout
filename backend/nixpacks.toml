@@ -1,0 +1,47 @@
+# nixpacks.toml — tells Railway/Nixpacks what system packages to install
+# Playwright's Chromium requires these system libs on Linux.
+
+[phases.setup]
+nixPkgs = [
+  "nodejs_20",
+  "chromium",
+  "nss",
+  "nspr",
+  "atk",
+  "cups",
+  "dbus",
+  "expat",
+  "libdrm",
+  "libxkbcommon",
+  "mesa",
+  "xorg.libX11",
+  "xorg.libXcomposite",
+  "xorg.libXdamage",
+  "xorg.libXext",
+  "xorg.libXfixes",
+  "xorg.libXrandr",
+  "xorg.libxcb",
+  "xorg.libXcursor",
+  "xorg.libXi",
+  "xorg.libXtst",
+  "pango",
+  "cairo",
+  "glib",
+  "gtk3",
+  "alsa-lib",
+  "at-spi2-atk",
+  "at-spi2-core",
+]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = [
+  # Tell Playwright to skip downloading its own Chromium — use system one instead.
+  # This avoids the massive download and keeps the image lean.
+  "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 echo 'Skipping Playwright browser download'"
+]
+
+[start]
+cmd = "node src/index.js"
