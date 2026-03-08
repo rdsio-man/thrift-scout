@@ -39,9 +39,7 @@ export default function ConfirmPurchaseScreen({ route, navigation }) {
   const [brand, setBrand] = useState(query || '');
   const [productType, setProductType] = useState('Other');
   const [description, setDescription] = useState('');
-  const [purchasePrice, setPurchasePrice] = useState(
-    suggestedPrice ? String(suggestedPrice.toFixed(2)) : ''
-  );
+  const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(getTodayString());
   const [purchasedAt, setPurchasedAt] = useState('');
   const [saving, setSaving] = useState(false);
@@ -61,7 +59,7 @@ export default function ConfirmPurchaseScreen({ route, navigation }) {
         purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
         purchaseDate: purchaseDate || undefined,
         purchasedAt: purchasedAt.trim() || undefined,
-        imageUrl: imageUri || undefined,
+        // imageUri is a local file:// path — skip for now, upload separately later
       };
 
       const result = await createItem(payload);
