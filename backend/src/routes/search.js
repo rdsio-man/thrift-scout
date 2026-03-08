@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 
 const { scrapePoshmarkSoldListings } = require('../services/poshmarkScraper');
+const { scrapeEbaySoldListings } = require('../services/ebayScraper');
 const { getCached, setCached } = require('../services/searchCache');
 
 const router = express.Router();
@@ -9,8 +10,36 @@ const router = express.Router();
 const EBAY_FINDING_API_URL =
   'https://svcs.ebay.com/services/search/FindingService/v1';
 
+// ─── eBay OAuth token cache ────────────────────────────────────────────────────
+let _ebayToken = null;
+let _ebayTokenExpiry = 0;
+
+async function getEbayToken() {
+  if (_ebayToken && Date.now() < _ebayTokenExpiry - 60000) return _ebayToken;
+
+  const appId = process.env.EBAY_APP_ID;
+  const certId = process.env.EBAY_CERT_ID;
+  if (!appId || !certId) throw new Error('eBay credentials not set');
+
+  const creds = Buffer.from(`${appId}:${certId}`).toString('base64');
+  const resp = await axios.post(
+    'https://api.ebay.com/identity/v1/oauth2/token',
+    'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
+    {
+      headers: {
+        Authorization: `Basic ${creds}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      timeout: 10000,
+    }
+  );
+
+  _ebayToken = resp.data.access_token;
+  _ebayTokenExpiry = Date.now() + resp.data.expires_in * 1000;
+  return _ebayToken;
+}
+
 // ─── POST /api/search/ebay ─────────────────────────────────────────────────────
-// Search eBay completed (sold) listings to get real-world pricing data.
 router.post('/ebay', async (req, res) => {
   const { query, category } = req.body;
 
@@ -18,20 +47,20 @@ router.post('/ebay', async (req, res) => {
     return res.status(400).json({ error: 'query is required' });
   }
 
-  // Check in-memory cache first
   const cacheKey = `ebay:${query.trim().toLowerCase()}:${category || ''}`;
   const cached = getCached(cacheKey);
   if (cached) {
+    console.log('[eBay] Cache hit for:', query);
     return res.json({ results: cached, fromCache: true });
   }
 
   const appId = process.env.EBAY_APP_ID;
   if (!appId || appId === 'your_ebay_app_id') {
-    return res.status(503).json({
-      error: 'eBay API credentials not configured. Set EBAY_APP_ID in .env',
-    });
+    return res.status(503).json({ error: 'eBay API credentials not configured.' });
   }
 
+  // ── Try Finding API first ──────────────────────────────────────────────────
+  let rateLimited = false;
   try {
     const params = {
       'OPERATION-NAME': 'findCompletedItems',
@@ -42,72 +71,69 @@ router.post('/ebay', async (req, res) => {
       keywords: query.trim(),
       'itemFilter(0).name': 'SoldItemsOnly',
       'itemFilter(0).value': 'true',
-      'sortOrder': 'EndTimeSoonest',
+      sortOrder: 'EndTimeSoonest',
       'paginationInput.entriesPerPage': '20',
     };
-
-    // Optionally filter by category
-    if (category) {
-      params['categoryId'] = category;
-    }
+    if (category) params['categoryId'] = category;
 
     const response = await axios.get(EBAY_FINDING_API_URL, {
       params,
-      headers: {
-        'X-EBAY-SOA-OPERATION-NAME': 'findCompletedItems',
-        'X-EBAY-SOA-SERVICE-VERSION': '1.13.0',
-        'X-EBAY-SOA-SECURITY-APPNAME': appId,
-        'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
-      },
       timeout: 10000,
     });
 
-    const searchResult =
-      response.data?.findCompletedItemsResponse?.[0];
+    const searchResult = response.data?.findCompletedItemsResponse?.[0];
 
-    if (!searchResult || searchResult.ack?.[0] !== 'Success') {
-      const errorMsg =
-        searchResult?.errorMessage?.[0]?.error?.[0]?.message?.[0] ||
-        'eBay API returned an unexpected response';
+    if (searchResult?.ack?.[0] === 'Success') {
+      const rawItems = searchResult.searchResult?.[0]?.item || [];
+      const results = rawItems.map((item) => ({
+        title: item.title?.[0] || '',
+        soldPrice: parseFloat(
+          item.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__ ||
+          item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || '0'
+        ),
+        imageUrl: item.galleryURL?.[0] || null,
+        listingUrl: item.viewItemURL?.[0] || null,
+        dateSold: item.listingInfo?.[0]?.endTime?.[0] || null,
+        source: 'ebay_api',
+      }));
 
-      // Surface rate limit as a specific error code the client can handle
-      const errorId = searchResult?.errorMessage?.[0]?.error?.[0]?.errorId?.[0];
-      if (errorId === '10001') {
-        return res.status(429).json({
-          error: 'eBay rate limit reached. Please wait a few minutes and try again.',
-          code: 'EBAY_RATE_LIMITED',
-        });
-      }
-
-      return res.status(502).json({ error: errorMsg });
+      setCached(cacheKey, results);
+      return res.json({ results });
     }
 
-    const rawItems =
-      searchResult.searchResult?.[0]?.item || [];
-
-    const results = rawItems.map((item) => ({
-      title: item.title?.[0] || '',
-      soldPrice: parseFloat(
-        item.sellingStatus?.[0]?.convertedCurrentPrice?.[0]?.__value__ ||
-          item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ ||
-          '0'
-      ),
-      imageUrl: item.galleryURL?.[0] || null,
-      listingUrl: item.viewItemURL?.[0] || null,
-      dateSold: item.listingInfo?.[0]?.endTime?.[0] || null,
-    }));
-
-    // Store in cache
-    setCached(cacheKey, results);
-
-    return res.json({ results });
+    // Check for rate limit
+    const errorId = searchResult?.errorMessage?.[0]?.error?.[0]?.errorId?.[0];
+    if (errorId === '10001') {
+      console.warn('[eBay] Finding API rate limited — falling back to scraper');
+      rateLimited = true;
+    } else {
+      const msg = searchResult?.errorMessage?.[0]?.error?.[0]?.message?.[0] || 'Unknown error';
+      console.warn('[eBay] Finding API error:', msg);
+      rateLimited = true; // fall through to scraper on any error
+    }
   } catch (err) {
-    console.error('[eBay Search Error]', err.message);
-    return res.status(500).json({
-      error: 'Failed to fetch eBay data',
-      details: err.message,
-    });
+    console.warn('[eBay] Finding API request failed:', err.message);
+    rateLimited = true;
   }
+
+  // ── Fallback: scrape eBay sold listings ────────────────────────────────────
+  if (rateLimited) {
+    console.log('[eBay] Using scraper fallback for:', query);
+    try {
+      const results = await scrapeEbaySoldListings(query.trim(), 20);
+      if (results.length > 0) {
+        setCached(cacheKey, results);
+        return res.json({ results, fromScraper: true });
+      }
+    } catch (scrapeErr) {
+      console.error('[eBay] Scraper also failed:', scrapeErr.message);
+    }
+
+    // Both failed — return empty so combined search still works
+    return res.json({ results: [] });
+  }
+
+  return res.json({ results: [] });
 });
 
 // ─── POST /api/search/poshmark ────────────────────────────────────────────────
