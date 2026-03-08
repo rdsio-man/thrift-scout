@@ -5,14 +5,20 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "newArchEnabled": false,
     "experiments": {
       "newArchEnabled": false
     },
     "android": {
       "package": "com.thriftscout.app",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "newArchEnabled": false
     },
     "ios": {
@@ -24,6 +30,12 @@
         "NSPhotoLibraryUsageDescription": "Thrift Scout needs photo library access to pick item photos."
       }
     },
-    "platforms": ["ios", "android"]
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
