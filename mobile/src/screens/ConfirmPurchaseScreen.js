@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as FileSystem from 'expo-file-system';
 import { createItem } from '../services/api';
 
 const PRODUCT_TYPES = [
@@ -52,6 +53,18 @@ export default function ConfirmPurchaseScreen({ route, navigation }) {
 
     setSaving(true);
     try {
+      // Convert local image to base64 for upload
+      let imageBase64 = undefined;
+      if (imageUri) {
+        try {
+          imageBase64 = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        } catch (imgErr) {
+          console.warn('[ConfirmPurchase] Could not read image file:', imgErr.message);
+        }
+      }
+
       const payload = {
         brand: brand.trim() || undefined,
         productType: productType || undefined,
@@ -59,7 +72,7 @@ export default function ConfirmPurchaseScreen({ route, navigation }) {
         purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
         purchaseDate: purchaseDate || undefined,
         purchasedAt: purchasedAt.trim() || undefined,
-        // imageUri is a local file:// path — skip for now, upload separately later
+        imageBase64,
       };
 
       const result = await createItem(payload);

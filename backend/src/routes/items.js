@@ -1,10 +1,10 @@
 const express = require('express');
 const { createItem, updateItem, getItem } = require('../services/airtable');
+const { uploadImage } = require('../services/cloudinary');
 
 const router = express.Router();
 
 // ─── POST /api/items ──────────────────────────────────────────────────────────
-// Save a newly purchased thrift item to the Airtable inventory.
 router.post('/', async (req, res) => {
   const {
     brand,
@@ -13,10 +13,9 @@ router.post('/', async (req, res) => {
     purchasePrice,
     purchaseDate,
     purchasedAt,
-    imageUrl,
+    imageBase64,  // base64 encoded image from phone camera
   } = req.body;
 
-  // Basic validation
   if (!brand && !productType && !description) {
     return res.status(400).json({
       error: 'At least one of brand, productType, or description is required',
@@ -24,7 +23,6 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Map to Airtable field IDs
     const fields = {};
 
     // Field IDs from All Inventory table (tbl5Z8YEYzZoj9p5p)
@@ -37,9 +35,16 @@ router.post('/', async (req, res) => {
     if (purchaseDate) fields['fldP9c5WDUmXWAOH7'] = purchaseDate;
     if (purchasedAt) fields['fldN5J11L6OTsQOIC'] = purchasedAt;
 
-    // Primary image stored as an Airtable attachment array
-    if (imageUrl) {
-      fields['fldFVjNPwQG2mt6Hp'] = [{ url: imageUrl }];
+    // Upload image to Cloudinary if provided, then attach URL to Airtable
+    if (imageBase64) {
+      try {
+        const imageUrl = await uploadImage(imageBase64);
+        fields['fldFVjNPwQG2mt6Hp'] = [{ url: imageUrl }];
+        console.log('[items] Image uploaded:', imageUrl);
+      } catch (imgErr) {
+        // Don't fail the whole save if image upload fails — just log it
+        console.warn('[items] Image upload failed, saving without photo:', imgErr.message);
+      }
     }
 
     const record = await createItem(fields);
