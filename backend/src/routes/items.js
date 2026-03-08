@@ -26,8 +26,9 @@ router.post('/', async (req, res) => {
     const fields = {};
 
     // Field IDs from All Inventory table (tbl5Z8YEYzZoj9p5p)
+    // Brand = singleSelect, Product Type = multipleSelects — must send as strings (Airtable accepts string for selects)
     if (brand) fields['fldIBF44OdMhBvjFB'] = brand;
-    if (productType) fields['fldsjuajP979HZKzr'] = productType;
+    if (productType) fields['fldsjuajP979HZKzr'] = [productType]; // multipleSelects requires array
     if (description) fields['fldPSW12VYsVYr4QK'] = description;
     if (purchasePrice !== undefined && purchasePrice !== null) {
       fields['fldzubWJZKhF5GIK9'] = parseFloat(purchasePrice);
@@ -38,12 +39,12 @@ router.post('/', async (req, res) => {
     // Upload image to Cloudinary if provided, then attach URL to Airtable
     if (imageBase64) {
       try {
+        console.log('[items] Uploading image to Cloudinary, base64 length:', imageBase64.length);
         const imageUrl = await uploadImage(imageBase64);
-        fields['fldFVjNPwQG2mt6Hp'] = [{ url: imageUrl }];
-        console.log('[items] Image uploaded:', imageUrl);
+        fields['fldKarfpdwhrjU91t'] = [{ url: imageUrl }];
+        console.log('[items] Image uploaded successfully:', imageUrl);
       } catch (imgErr) {
-        // Don't fail the whole save if image upload fails — just log it
-        console.warn('[items] Image upload failed, saving without photo:', imgErr.message);
+        console.warn('[items] Image upload failed:', imgErr.message);
       }
     }
 
@@ -83,7 +84,7 @@ router.patch('/:id/model-images', async (req, res) => {
     const attachments = imageUrls.map((url) => ({ url }));
 
     const updatedRecord = await updateItem(id, {
-      fldEZ8uzS0OlHuwKo: attachments, // Additional Images field
+      fldghRCaUSsNKCraM: attachments, // Additional Images field
     });
 
     return res.json({

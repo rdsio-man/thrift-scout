@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 20000,
+  timeout: 60000, // 60s — real photo uploads to Cloudinary can take a while on mobile
   headers: {
     'Content-Type': 'application/json',
   },
