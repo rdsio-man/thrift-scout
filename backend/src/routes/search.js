@@ -281,9 +281,9 @@ router.post('/ebay/active', async (req, res) => {
       'REST-PAYLOAD': '',
       keywords: q,
       'itemFilter(0).name': 'ListingType',
-      'itemFilter(0).value(0)': 'FixedPrice',
-      'itemFilter(0).value(1)': 'Auction',
-      'itemFilter(0).value(2)': 'AuctionWithBIN',
+      'itemFilter(0).value[0]': 'FixedPrice',
+      'itemFilter(0).value[1]': 'Auction',
+      'itemFilter(0).value[2]': 'AuctionWithBIN',
       sortOrder: 'BestMatch',
       'paginationInput.entriesPerPage': '20',
     };
